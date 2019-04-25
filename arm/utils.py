@@ -10,6 +10,7 @@ import requests
 
 from config import cfg
 
+import shutil
 
 def notify(title, body):
     # Send notificaions
@@ -142,7 +143,7 @@ def get_cdrom_status(devpath):
 
     see linux/cdrom.h for specifics\n
     """
-
+    
     try:
         fd = os.open(devpath, os.O_RDONLY | os.O_NONBLOCK)
     except Exception:
@@ -176,13 +177,16 @@ def rip_music(disc, logfile):
 
     returns True/False for success/fail
     """
-
     if disc.disctype == "music":
         logging.info("Disc identified as music")
-        cmd = 'abcde -d "{0}" >> "{1}" 2>&1'.format(
+        #cmd = 'abcde -d "{0}" >> "{1}" 2>&1'.format(
+        cmd = 'whipper cd -d "{0}" rip >> "{1}" 2>&1'.format(
             disc.devpath,
             logfile
         )
+
+
+
 
         logging.debug("Sending command: " + cmd)
 
