@@ -18,6 +18,8 @@ from config import cfg
 from classes import Disc
 from getkeys import grabkeys
 
+from distutils.dir_util import copy_tree
+
 
 def entry():
     """ Entry to program, parses arguments"""
@@ -69,6 +71,7 @@ def log_arm_params(disc):
     logging.info("logfile: " + logfile)
     logging.info("armpath: " + cfg['ARMPATH'])
     logging.info("rawpath: " + cfg['RAWPATH'])
+    logging.info("MUSIC_DIR" + cfg['MUSIC_DIR']) 
     logging.info("media_dir: " + cfg['MEDIA_DIR'])
     logging.info("extras_sub: " + cfg['EXTRAS_SUB'])
     logging.info("emby_refresh: " + str(cfg['EMBY_REFRESH']))
@@ -83,9 +86,10 @@ def main(logfile, disc):
 
     """main dvd processing function"""
     logging.info("Starting Disc identification")
-
+    print("Starting Disc identification")
     identify.identify(disc, logfile)
 
+    print("ripping disc")
     log_arm_params(disc)
 
     if disc.disctype in ["dvd", "bluray"]:
@@ -95,6 +99,8 @@ def main(logfile, disc):
         utils.notify("ARM notification", "Found music CD: " + disc.label + ". Ripping all tracks")
     elif disc.disctype == "data":
         utils.notify("ARM notification", "Faound data disc.  Copying data.")
+    elif disc.disctype == "mp3CD":
+        utils.notify("ARM notification", "found MP3 CD. copying data")
     else:
         utils.notify("ARM Notification", "Could not identify disc.  Exiting.")
         sys.exit()
@@ -238,9 +244,26 @@ def main(logfile, disc):
             utils.scan_emby()
         else:
             logging.info("Music rip failed.  See previous errors.  Exiting.")
-
+    elif disc.disctype == "mp3CD":
+        print("mp3CD")
+        dirName = datetime.datetime.now().strftime('%Y-%m-%d_%H;%M;%S')
+        for file in os.listdir(disc.mountpoint):
+            if file.endswith(".m3u"):
+                with open(disc.mountpoint + "/" + file) as fp:
+                    for line in fp:
+                        print(line)
+                        if (line.find("#EXTINF") != -1):
+                            dirName+= " " + line.strip("#EXTINF:").strip("\n")
+                            print("Found")
+                            break
+        print(cfg["MUSIC_DIR"] + dirName)
+        os.makedirs(cfg["MUSIC_DIR"] + dirName)
+        copy_tree(disc.mountpoint, cfg["MUSIC_DIR"] + dirName)
+        os.system("umount " + disc.devpath)
+        disc.eject()
     elif disc.disctype == "data":
         # get filesystem in order
+        python("data disc")
         datapath = os.path.join(cfg['ARMPATH'], str(disc.label))
         if (utils.make_dir(datapath)) is False:
             ts = round(time.time() * 100)
@@ -259,6 +282,7 @@ def main(logfile, disc):
 
     else:
         logging.info("Couldn't identify the disc type. Exiting without any action.")
+        print("not identify")   
 
 
 if __name__ == "__main__":
@@ -267,19 +291,19 @@ if __name__ == "__main__":
     args.devpath = args.devpath[:3]
     devpath = "/dev/" + args.devpath
     print(devpath)
-
     disc = Disc(devpath)
     print("Disc: " + disc.label)
 
     # sys.exit()
-
     logfile = logger.setuplogging(disc)
     print("Log: " + logfile)
 
     if utils.get_cdrom_status(devpath) != 4:
+        print("Unready")
         logging.info("Drive appears to be empty or is not ready.  Exiting ARM.")
         sys.exit()
 
+    print("processing")
     logging.info("Starting ARM processing at " + str(datetime.datetime.now()))
 
     # Log version number
@@ -293,7 +317,10 @@ if __name__ == "__main__":
     log_udev_params()
 
     try:
+        print("running")
         main(logfile, disc)
+        print("done")
     except Exception:
         logging.exception("A fatal error has occured and ARM is exiting.  See traceback below for details.")
         utils.notify("ARM notification", "ARM encountered a fatal error processing " + str(disc.videotitle) + ". Check the logs for more details")
+    print("ehh")

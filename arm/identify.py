@@ -25,7 +25,6 @@ def identify(disc, logfile):
         os.makedirs(str(disc.mountpoint))
 
     os.system("mount " + disc.devpath)
-
     # Check to make sure it's not a data disc
     if disc.disctype == "music":
         logging.debug("Disc is music.  Skipping identification")
@@ -45,8 +44,14 @@ def identify(disc, logfile):
         logging.debug("Found file: HVDVD_TS")
         # do something here too
     else:
-        logging.debug("Did not find valid dvd/bd files. Changing disctype to 'data'")
-        disc.disctype = "data"
+        discSet = False
+        for file in os.listdir(disc.mountpoint):
+            if file.endswith(".mp3") or file.endswith(".m3u"):
+                disc.disctype = "mp3CD"
+                discSet=True
+        if not discSet:
+            logging.debug("Did not find valid dvd/bd files. Changing disctype to 'data'")
+            disc.disctype = "data"
 
     if disc.disctype in ["dvd", "bluray"]:
 
@@ -71,4 +76,5 @@ def identify(disc, logfile):
             logging.info("Disc title: " + str(disc.videotitle) + " : " + str(disc.videoyear) + " : " + str(disc.videotype))
             logging.debug("Identification complete: " + str(disc))
 
-    os.system("umount " + disc.devpath)
+    if not disc.disctype == "mp3CD":
+        os.system("umount " + disc.devpath)
