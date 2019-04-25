@@ -177,11 +177,16 @@ def rip_music(disc, logfile):
 
     returns True/False for success/fail
     """
+
+    directoryName = cfg["MUSIC_DIR"] + datetime.date.today().strftime('%Y-%m-%d_%H;%M;%S') + "/"
+    #make_dir(directoryName)
+
     if disc.disctype == "music":
         logging.info("Disc identified as music")
         #cmd = 'abcde -d "{0}" >> "{1}" 2>&1'.format(
-        cmd = 'whipper cd -d "{0}" rip >> "{1}" 2>&1'.format(
+        cmd = 'whipper cd -d "{0}" rip -O "{1}" >> "{2}" 2>&1'.format(
             disc.devpath,
+            directoryName,
             logfile
         )
 
