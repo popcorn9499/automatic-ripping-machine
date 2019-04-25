@@ -263,7 +263,7 @@ def main(logfile, disc):
         disc.eject()
     elif disc.disctype == "data":
         # get filesystem in order
-        python("data disc")
+        print("data disc")
         datapath = os.path.join(cfg['ARMPATH'], str(disc.label))
         if (utils.make_dir(datapath)) is False:
             ts = round(time.time() * 100)
