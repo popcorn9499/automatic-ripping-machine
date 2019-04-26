@@ -48,6 +48,8 @@ MEDIA_DIR: "/home/arm/media/movies/"
 
 MUSIC_DIR: "/home/arm/media/music/"
 
+TIMESTAMPED: true
+
 # Movie subdirectory name for "extras"
 # Valid names are dependent on your media server
 # For Emby see https://github.com/MediaBrowser/Wiki/wiki/Movie%20naming#user-content-movie-extras

@@ -11,6 +11,7 @@ import requests
 from config import cfg
 
 import shutil
+import datetime
 
 def notify(title, body):
     # Send notificaions
@@ -177,8 +178,10 @@ def rip_music(disc, logfile):
 
     returns True/False for success/fail
     """
+    directoryName = cfg["MUSIC_DIR"]
 
-    directoryName = cfg["MUSIC_DIR"] + datetime.date.today().strftime('%Y-%m-%d_%H;%M;%S') + "/"
+    if cfg["TIMESTAMPED"]:
+        directoryName = cfg["MUSIC_DIR"] + datetime.date.today().strftime('%Y-%m-%d_%H;%M;%S') + "/"
     #make_dir(directoryName)
 
     if disc.disctype == "music":
